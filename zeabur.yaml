@@ -39,7 +39,8 @@ spec:
       template: PREBUILT
       spec:
         source:
-          dockerfile: Dockerfile.zeabur
+          dockerfile: Dockerfile
+          target: metastore
         ports:
           - id: api
             port: 3001
@@ -68,7 +69,8 @@ spec:
       template: PREBUILT
       spec:
         source:
-          dockerfile: Dockerfile.zeabur
+          dockerfile: Dockerfile
+          target: pagestore
         ports:
           - id: api
             port: 3000

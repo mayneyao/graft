@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  metastore:
+    build:
+      context: .
+      target: metastore
+    ports:
+      - "3001:3001"
+    environment:
+      - SERVICE=metastore
+      - AWS_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - AWS_REGION=auto
+      - AWS_ENDPOINT=https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+      - RUST_BACKTRACE=1
+    networks:
+      - graft-network
+
+  pagestore:
+    build:
+      context: .
+      target: pagestore
+    ports:
+      - "3000:3000"
+    environment:
+      - SERVICE=pagestore
+      - AWS_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - AWS_REGION=auto
+      - AWS_ENDPOINT=https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+      - PAGESTORE_METASTORE=http://metastore:3001
+      - RUST_BACKTRACE=1
+    depends_on:
+      - metastore
+    networks:
+      - graft-network
+
+networks:
+  graft-network:
+    driver: bridge 

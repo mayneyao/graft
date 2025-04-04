@@ -46,6 +46,27 @@ ARG INSTRUMENTED
 COPY ./tests/antithesis/libvoidstar.so /usr/lib/libvoidstar.so
 ENV LD_LIBRARY_PATH=${INSTRUMENTED:+"/usr/lib/libvoidstar.so"}
 
+# Add environment variables for R2 configuration
+ENV AWS_REGION=auto
+ENV RUST_BACKTRACE=1
+
+# Create a single image with both services
+FROM runtime AS final
+COPY --from=builder /artifacts/metastore /metastore
+COPY --from=builder /artifacts/pagestore /pagestore
+COPY ./deploy/metastore/metastore.toml /metastore.toml
+COPY ./deploy/pagestore/pagestore.toml /pagestore.toml
+
+# Create startup script
+RUN echo '#!/bin/sh\n\
+if [ "$SERVICE" = "metastore" ]; then\n\
+  exec /metastore\n\
+else\n\
+  exec /pagestore\n\
+fi' > /start.sh && chmod +x /start.sh
+
+ENTRYPOINT ["/start.sh"]
+
 FROM runtime AS metastore
 COPY --from=builder /artifacts/metastore /metastore
 COPY ./deploy/metastore/metastore.toml /metastore.toml
@@ -57,10 +78,3 @@ COPY --from=builder /artifacts/pagestore /pagestore
 COPY ./deploy/pagestore/pagestore.toml /pagestore.toml
 RUN ["sh", "-c", "mkdir /symbols && ln -s /pagestore /symbols/pagestore"]
 ENTRYPOINT ["/pagestore"]
-
-FROM runtime AS test_workload
-COPY --from=builder /artifacts/test_workload /test_workload
-COPY ./crates/graft-test/workloads /workloads
-COPY ./tests/antithesis/workloads /opt/antithesis/test
-RUN ["sh", "-c", "mkdir /symbols && ln -s /test_workload /symbols/test_workload"]
-ENTRYPOINT ["sleep", "infinity"]
