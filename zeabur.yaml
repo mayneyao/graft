@@ -1,0 +1,124 @@
+apiVersion: zeabur.com/v1
+kind: Template
+metadata:
+  name: Graft
+spec:
+  description: A distributed storage system with R2 backend
+  icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/rust.svg
+  variables:
+    - key: R2_ACCESS_KEY_ID
+      type: STRING
+      name: R2 Access Key ID
+      description: Your Cloudflare R2 Access Key ID
+    - key: R2_SECRET_ACCESS_KEY
+      type: STRING
+      name: R2 Secret Access Key
+      description: Your Cloudflare R2 Secret Access Key
+    - key: R2_ACCOUNT_ID
+      type: STRING
+      name: R2 Account ID
+      description: Your Cloudflare Account ID
+  tags:
+    - Storage
+    - Rust
+  readme: |-
+    # Graft
+    A distributed storage system with Cloudflare R2 backend.
+
+    ## Services
+    - Metastore: Manages metadata (port 3001)
+    - Pagestore: Handles page storage (port 3000)
+
+    ## Environment Variables
+    - R2_ACCESS_KEY_ID: Your Cloudflare R2 Access Key ID
+    - R2_SECRET_ACCESS_KEY: Your Cloudflare R2 Secret Access Key
+    - R2_ACCOUNT_ID: Your Cloudflare Account ID
+  services:
+    - name: Metastore
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/rust.svg
+      template: PREBUILT
+      spec:
+        source:
+          dockerfile: Dockerfile.zeabur
+        ports:
+          - id: api
+            port: 3001
+            type: HTTP
+        env:
+          SERVICE:
+            default: metastore
+          AWS_ACCESS_KEY_ID:
+            default: ${R2_ACCESS_KEY_ID}
+          AWS_SECRET_ACCESS_KEY:
+            default: ${R2_SECRET_ACCESS_KEY}
+          AWS_REGION:
+            default: auto
+          AWS_ENDPOINT:
+            default: https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          RUST_BACKTRACE:
+            default: 1
+        instructions:
+          - type: TEXT
+            title: Metastore API Endpoint
+            content: https://${SERVICE_DOMAIN}
+            category: API
+
+    - name: Pagestore
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/rust.svg
+      template: PREBUILT
+      spec:
+        source:
+          dockerfile: Dockerfile.zeabur
+        ports:
+          - id: api
+            port: 3000
+            type: HTTP
+        env:
+          SERVICE:
+            default: pagestore
+          AWS_ACCESS_KEY_ID:
+            default: ${R2_ACCESS_KEY_ID}
+          AWS_SECRET_ACCESS_KEY:
+            default: ${R2_SECRET_ACCESS_KEY}
+          AWS_REGION:
+            default: auto
+          AWS_ENDPOINT:
+            default: https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          PAGESTORE_METASTORE:
+            default: http://metastore:3001
+          RUST_BACKTRACE:
+            default: 1
+        instructions:
+          - type: TEXT
+            title: Pagestore API Endpoint
+            content: https://${SERVICE_DOMAIN}
+            category: API
+
+localization:
+  zh-CN:
+    description: 一个基于 R2 的分布式存储系统
+    variables:
+      - key: R2_ACCESS_KEY_ID
+        type: STRING
+        name: R2 访问密钥 ID
+        description: 您的 Cloudflare R2 访问密钥 ID
+      - key: R2_SECRET_ACCESS_KEY
+        type: STRING
+        name: R2 密钥
+        description: 您的 Cloudflare R2 密钥
+      - key: R2_ACCOUNT_ID
+        type: STRING
+        name: R2 账户 ID
+        description: 您的 Cloudflare 账户 ID
+    readme: |-
+      # Graft
+      一个基于 Cloudflare R2 的分布式存储系统。
+
+      ## 服务
+      - Metastore: 管理元数据 (端口 3001)
+      - Pagestore: 处理页面存储 (端口 3000)
+
+      ## 环境变量
+      - R2_ACCESS_KEY_ID: 您的 Cloudflare R2 访问密钥 ID
+      - R2_SECRET_ACCESS_KEY: 您的 Cloudflare R2 密钥
+      - R2_ACCOUNT_ID: 您的 Cloudflare 账户 ID 
